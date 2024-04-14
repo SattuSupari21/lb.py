@@ -1,7 +1,7 @@
 import socket
 import threading
 
-server_list = [5000, 5001]
+server_list = [5000, 5001, 5002]
 
 class RoundRobin:
     def __init__(self, server_list):
@@ -23,7 +23,11 @@ class Socket:
 
     def ForwardRequestToBackend(self, request, host, port, client_sock):
         be_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        be_socket.connect((host, port))
+        try:
+            be_socket.connect((host, port))
+        except:
+            client_sock.close()
+            return
         be_socket.send(request.encode())
         while True:
             headers, body = be_socket.recv(4096), be_socket.recv(4096)
@@ -35,6 +39,8 @@ class Socket:
 
         response = headers + body
         client_sock.send(response)
+
+        client_sock.close()
 
     def createSocket(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -55,13 +61,8 @@ class Socket:
             newThread.start()
             threads.append(newThread)
 
-            # responseFromBackend = self.ForwardRequestToBackend(request, 'localhost', roundRobin.get_next_server())
-            # client.send(responseFromBackend)
-
         for thread in threads:
             thread.join()
-        
-        client.close()
 
 if __name__ == "__main__":
     print("Load Balancer running on port 8888")
