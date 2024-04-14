@@ -1,19 +1,57 @@
 import socket
 import threading
+import requests
 
-server_list = [5000, 5001, 5002]
+init_servers = ["http://localhost:5000", "http://localhost:5001", "http://localhost:5002"]
 
-class RoundRobin:
+# Class to manage backend servers
+class BackendServers:
+    def __init__(self, server_list):
+        self.server_list = server_list
+
+    # Function to extract host and port from the server url
+    def parseServerUrl(self, url):
+        host = ""
+        if url.split(':')[0] == "http" or url.split(':')[0] == "https":
+            host = url.split(':')[1][2:]
+            port = url.split(':')[2]
+        else:
+            host = url.split(':')[0]
+            port = url.split(':')[1]
+        return host, port
+    
+    def checkServerHealth(self, host, port):
+        # print(f"Checking health of server : {host + ':' + str(port)}")
+        res = requests.get('http://' + host + ':' + str(port))
+        if res.status_code == 200:
+            return True
+        else:
+            return False
+        
+    def getActiveServers(self):
+        active_servers = []
+        for server in init_servers:
+            host, port = self.parseServerUrl(server)
+            if self.checkServerHealth(host, port) == True:
+                active_servers.append(host + ':' + port)
+        return active_servers
+        # return [5000, 5001, 5002]
+
+# Class to select backend server for the request forwarding (Uses Round Robin Algorithm)
+class ServerSelection:
     def __init__(self, server_list):
         self.servers = server_list
         self.current_index = 0
 
     def get_next_server(self):
         server = self.servers[self.current_index]
+        server_host = server.split(':')[0]
+        server_port = server.split(':')[1]
         self.current_index = (self.current_index + 1) % len(self.servers)
-        return server
+        return server_host, int(server_port)
 
-roundRobin = RoundRobin(server_list)
+available_servers = BackendServers(init_servers)
+be_servers = ServerSelection(available_servers.getActiveServers())
 threads = []
 
 class Socket:
@@ -57,7 +95,8 @@ class Socket:
             print(request)
 
             # Forward request to backend server
-            newThread = threading.Thread(target=self.ForwardRequestToBackend, args=(request, 'localhost', roundRobin.get_next_server(), client))
+            host, port = be_servers.get_next_server()
+            newThread = threading.Thread(target=self.ForwardRequestToBackend, args=(request, host, port, client))
             newThread.start()
             threads.append(newThread)
 
