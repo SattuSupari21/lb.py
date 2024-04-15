@@ -28,16 +28,14 @@ class BackendServers:
             if res.status_code == 200:
                 print(f"[HEALTH CHECK] Server {server_number} PASSED")
                 return True
-            else:
-                print(f"[HEALTH CHECK] Server {server_number} FAILED")
-                return False
         except:
+            print(f"[HEALTH CHECK] Server {server_number} FAILED")
             return False
         
     def getActiveServers(self):
         active_servers = []
         server_number = 1
-        for server in self.server_list:
+        for server in init_servers:
             protocol, host, port = self.parseServerUrl(server)
             if self.checkServerHealth(protocol, host, port, server_number) == True:
                 active_servers.append(host + ':' + port)
@@ -53,11 +51,15 @@ class ServerSelection:
     def get_next_server(self):
         if len(self.servers) == 1:
             self.current_index = 0
-        server = self.servers[self.current_index]
-        server_host = server.split(':')[0]
-        server_port = server.split(':')[1]
-        self.current_index = (self.current_index + 1) % len(self.servers)
-        return server_host, int(server_port)
+        try:
+            server = self.servers[self.current_index]
+            server_host = server.split(':')[0]
+            server_port = server.split(':')[1]
+            self.current_index = (self.current_index + 1) % len(self.servers)
+            return server_host, int(server_port)
+        except Exception:
+            print("A Server went offline")
+            return
 
 be_servers = ServerSelection(server_list=init_servers)
 
@@ -67,6 +69,7 @@ def updateAvailableServers():
     be_servers.servers = available_servers.getActiveServers()
 
 available_servers = BackendServers(init_servers)
+threads = []
 
 class Socket:
     def __init__(self, host, port):
@@ -120,6 +123,5 @@ class Socket:
 if __name__ == "__main__":
     print("Load Balancer running on port 8888")
     updateAvailableServers()
-    threads = []
     lb_server = Socket('localhost', 8888)
     lb_server.createSocket()
