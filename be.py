@@ -9,6 +9,10 @@ def hello():
     print("Replied with a hello message")
     return f"Hello from Backend Server running on port {sys.argv[1]}", 200
 
+@app.route("/health-check")
+def healthCheck():
+    return f"Health check successfull, server is online", 200
+
 if __name__ == "__main__":
     if (len(sys.argv) < 2):
         print("Usage: python be.py PORT")
