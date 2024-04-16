@@ -3,13 +3,11 @@
 Implementation of a simple Load Balancer which is created from scratch using Python.
 
 #### Concepts:
-___
 - Networking
 - Threading
 - Load Balancing Algorithm
 
 #### Usage:
-___
 - First start the Load Balancer using the command:
 ```
 python multithreaded-lb.py
