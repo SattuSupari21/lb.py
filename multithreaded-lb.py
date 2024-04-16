@@ -33,6 +33,7 @@ class BackendServers:
             return False
         
     def getActiveServers(self):
+        print("\n")
         active_servers = []
         server_number = 1
         for server in init_servers:
@@ -58,18 +59,15 @@ class ServerSelection:
             self.current_index = (self.current_index + 1) % len(self.servers)
             return server_host, int(server_port)
         except Exception:
-            print("A Server went offline")
             return
 
 be_servers = ServerSelection(server_list=init_servers)
-
-def updateAvailableServers():
-    threading.Timer(10.0, updateAvailableServers).start()
-    available_servers = BackendServers(init_servers)
-    be_servers.servers = available_servers.getActiveServers()
-
-available_servers = BackendServers(init_servers)
 threads = []
+
+# Function to update server list every n seconds
+def updateAvailableServers():
+    threading.Timer(5.0, updateAvailableServers).start()
+    be_servers.servers = BackendServers(init_servers).getActiveServers()
 
 class Socket:
     def __init__(self, host, port):
@@ -101,7 +99,7 @@ class Socket:
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((self.host, self.port))
-        server.listen(5)
+        server.listen(100)
 
         while True:
             client, address = server.accept()
@@ -112,7 +110,10 @@ class Socket:
             # print(request)
 
             # Forward request to backend server
-            host, port = be_servers.get_next_server()
+            try:
+                host, port = be_servers.get_next_server()
+            except:
+                continue
             newThread = threading.Thread(target=self.ForwardRequestToBackend, args=(request, host, port, client))
             newThread.start()
             threads.append(newThread)
