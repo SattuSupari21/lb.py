@@ -2,16 +2,32 @@
 
 Implementation of a simple Load Balancer which is created from scratch using Python.
 
-#### Concepts:
+### Table of Contents
+- [Features](#features)
+- [Demo](#demo)
+- [Concepts](#concepts)
+- [Usage](#usage)
+
+### Features:
+- Uses Round Robin Algorithm to select Back-end servers.
+- Displays Health of Back-end servers
+- Automatically adds online and remove offline servers.
+- Multi-threaded for faster response time
+
+### Demo:
+![Demo](https://github.com/SattuSupari21/lb.py/blob/main/demo/lb-py-demo.gif)
+
+### Concepts:
 - Networking
 - Threading
 - Load Balancing Algorithm
 
-#### Usage:
+### Usage:
 - First start the Load Balancer using the command:
 ```
 python multithreaded-lb.py
 ```
+- The Load Balancer will start on port 8888 by default.
 - Then start the Back-end servers using the command:
 ```
 python be.py 5000
@@ -22,14 +38,3 @@ python be.py 5002
 ```
 curl http://localhost:8888
 ```
-
-#### Features:
-- Uses Round Robin Algorithm to select Back-end servers.
-- Displays Health of Back-end servers
-- Automatically adds online and remove offline servers.
-- Multi-threaded for faster response time
-
-#### Files:
-- lb.py - Single threaded load balancer
-- multithreaded-lb.py - Multithreaded load balancer
-- be.py - Simple python backend server created using Flask
